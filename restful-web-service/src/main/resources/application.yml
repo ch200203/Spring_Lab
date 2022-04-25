@@ -1,0 +1,21 @@
+server:
+  port: 8088
+  
+# log 설정
+logging:
+  level:
+    '[org.springframework]': DEBUG
+    
+spring :
+  messages :
+    basename : 'message'
+  security:
+    user:
+      name: username
+      password: 1234
+
+mangemnet:
+  endpoint:
+    web:
+      exposure:
+        include : "*"
