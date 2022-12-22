@@ -9,10 +9,17 @@ import hello.core.member.MemoryMemberRepository;
 
 public class OrderServiceImpl implements OrderService {
 
-    private final MemberRepository memberRepository = new MemoryMemberRepository();
+    private MemberRepository memberRepository;
     private DiscountPolicy discountPolicy;
-    // private final DiscountPolicy discountPolicy = new FixDiscountPolicy();
+
+    public OrderServiceImpl(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
+        this.discountPolicy = discountPolicy;
+        this.memberRepository = memberRepository;
+    }
+
     // private final DiscountPolicy discountPolicy = new RateDiscountPolicy();
+    // private final DiscountPolicy discountPolicy = new FixDiscountPolicy();
+    // private final MemberRepository memberRepository = new MemoryMemberRepository();
     /*
         FixDiscountPolicy -> RateDiscountPolicy 로 변경
         이 때의 문제점,
