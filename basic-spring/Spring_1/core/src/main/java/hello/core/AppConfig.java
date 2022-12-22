@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AppConfig {
 
+    // @Bean(name = "other_name")
     @Bean
     public MemberService memberService() {
         // 생성자 주입
