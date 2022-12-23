@@ -61,4 +61,8 @@
 - `AppConfig.class` 를 읽고 `BeanDefinition` 을 생성한다.
 - `GenericXmlApplicationContext` 는 `XmlBeanDefinitionReader` 를 사용해서 `appConfig.xml` 설정
 - 정보를 읽고 `BeanDefinition` 을 생성한다.
-새로운 형식의 설정 정보가 추가되면, XxxBeanDefinitionReader를 만들어서 `BeanDefinition` 을 생성하면 된다
+새로운 형식의 설정 정보가 추가되면, XxxBeanDefinitionReader를 만들어서 `BeanDefinition` 을 생성하면 된다.
+
+### BeanDefinition을 정리
+- `BeanDefinition을` 직접 생성해서 스프링 컨테이너에 등록할 수 도 있다. 하지만 실무에서 BeanDefinition을 직접 정의하거나 사용할 일은 거의 없다. 
+- 스프링이 다양한 형태의 설정 정보를 `BeanDefinition으로` 추상화해서 사용한다.
