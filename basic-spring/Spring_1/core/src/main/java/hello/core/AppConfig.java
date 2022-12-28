@@ -14,11 +14,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AppConfig {
 
+    // @Bean memberService -> new MemoryMemberRepository()
+    // @Bean orderService -> new MemoryMemberRepository();
+
     // @Bean(name = "other_name")
     @Bean
     public MemberService memberService() {
         // 생성자 주입
-        return new MemberServiceImpl(new MemoryMemberRepository());
+        return new MemberServiceImpl(memberRepository());
     }
 
     @Bean
@@ -29,7 +32,7 @@ public class AppConfig {
     @Bean
     public OrderService orderService() {
         return new OrderServiceImpl(
-            new MemoryMemberRepository(),
+            memberRepository(),
             // new FixDiscountPolicy()
             new RateDiscountPolicy()
         );
