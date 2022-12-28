@@ -3,7 +3,6 @@ package hello.core.xml;
 import static org.assertj.core.api.Assertions.*;
 
 import hello.core.member.MemberService;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;

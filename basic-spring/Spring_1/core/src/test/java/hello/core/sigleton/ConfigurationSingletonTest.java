@@ -33,4 +33,11 @@ public class ConfigurationSingletonTest {
 
         // memberRepository 모두 같은 인스턴스가 공유되어 사용 중 이다.
     }
+    @Test
+    void configurationDeep() {
+        ApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+        AppConfig bean = ac.getBean(AppConfig.class);
+
+        System.out.println("bean" + bean.getClass());
+    }
 }
