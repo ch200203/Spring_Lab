@@ -1,5 +1,6 @@
 package hello.core.sigleton;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Assertions;
@@ -26,7 +27,8 @@ class StatefulServiceTest {
         // int price = statefulService1.getPrice();
         System.out.println("price = " + userAPrice);
 
-        org.assertj.core.api.Assertions.assertThat(statefulService1.getPrice()).isEqualTo(20000);
+
+        // assertThat(statefulService1.getPrice()).isEqualTo(20000);
     }
 
     static class TestConfig {

@@ -10,6 +10,7 @@ public class StatefulService {
         return price;
     }
 
+
 //    public int getPrice() {
 //        return price;
 //    }
