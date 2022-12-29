@@ -93,6 +93,9 @@
 2. 수동 빈 등록 vs 자동 빈 등록
     - 수동 빈 등록이 우선권을 가진다.
         - 수동 빈이 자동 빈을 Overriding 해버린다.
+        ```
+         Overriding bean definition for bean 'memoryMemberRepository' with a different definition
+        ```
     - 대부분 이런경우는 개발자가 의도하지 않는 경우에 발생함.
         - **이렇게 되면, 잡기 어려운 버그가 발생해버림**
         - 가장 어려운 버그는 애매한 버그
