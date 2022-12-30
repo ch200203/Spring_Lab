@@ -8,12 +8,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class CoreApplicationTests {
 
-	
-	@Autowired
-	OrderService orderService; // 필드 주입 허용 예시
-	
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }
