@@ -1,7 +1,7 @@
 package hello.core.beanfind;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import hello.core.discount.DiscountPolicy;
 import hello.core.discount.FixDiscountPolicy;
