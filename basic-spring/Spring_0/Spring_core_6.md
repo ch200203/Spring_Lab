@@ -79,3 +79,37 @@ public class OrderServiceImpl implements OrderService {
     }
 ```
 | 단, 의존관계 자동주입은 스프링 컨테이너가 관리하는 빈에서만 작동한다.
+
+
+## 옵션처리
+
+주입할 스프링 빈이 없어도 동작해야할 경우
+자동 주입 대상을 옵션으로 처리하는 방법 
+- `@Autowired(required=false)` : 자동 주입할 대상이 없으면 수정자 메서드 자체가 호출 안됨
+- `org.springframework.lang.@Nullable` : 자동 주입할 대상이 없으면 수정자 메서드 자체가 호출이 안됨
+- `Optional<>` : 자동 주입할 대상이 없으면 `Optional.empty`가 입력된다.
+
+## 생성주입을 선택하야 하는 이유
+
+## 롬복과 최신트렌드
+
+보통 생성자가 딱 1개만 있는 경우 `@Autowired`를 생략할 수 있음
+
+- Lombok를 적용하면
+- `@RequiredArgsConstructor` 기능을 사용하면 `final`이 붙은 필드를 모아서 생성자를 자동으로 만들어준다. (코드에는 보이지 않지만 실제 호출 가능하다.)
+
+```java
+@Component
+@RequiredArgsConstructor
+public class OrderServiceImpl implements OrderService {
+    private final MemberRepository memberRepository;
+    private final DiscountPolicy discountPolicy;
+}
+```
+
+### 정리s
+- 최근에는 생성자를 딱 1개 두고, `@Autowired` 를 생략하는 방법을 주로 사용한다. 
+-  `@RequiredArgsConstructor` 함께 사용하면 기능은 다 제공하면서, 코드는 깔끔하게 사용할 수 있다.
+
+## 조회 빈이 2개이상 - 문제
+
