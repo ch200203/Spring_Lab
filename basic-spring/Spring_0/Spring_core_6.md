@@ -113,3 +113,54 @@ public class OrderServiceImpl implements OrderService {
 
 ## 조회 빈이 2개이상 - 문제
 
+- `@Autowired`는 타입으로 조회한다.
+- 타입으로 조회하면 선택된 빈이 2개 이상일 때 문제가 발생한다.
+    - `NoUniqueBeanDefinitionException` 오류가 발생한다.
+    - 이때 하위 타입으로 지정할 수 도 있지만, 하위 타입으로 지정하는 것은 DIP를 위배하고 유연성이 떨어진다.     그리고 이름만 다르고, 완전히 똑같은 타입의 스프링 빈이 2개 있을 때 해결이 안된다.
+    **스프링 빈을 수동 등록**해서 문제를 해결해도 되지만, **의존 관계 자동 주입**에서 해결하는 여러 방법이 있다.
+
+### @Autowired 필드명 매칭, @Qualifier, @Primary 사용
+
+조회 대상 빈이 2개 이상일 때 해결 방법
+- `@Autowired` 필드 명 매칭
+- `@Qualifier` `@Qualifier`끼리 매칭 빈 이름 매칭 `@Primary` 사용
+
+@Autowired 매칭 정리
+1. 타입 매칭
+2. 타입 매칭의 결과가 2개 이상일 때 필드 명, 파라미터 명으로 빈 이름 매칭
+
+@Qualifier 사용
+- `@Qualifier` 는 추가 구분자를 붙여주는 방법이다. 주입시 추가적인 방법을 제공하는 것이지 빈 이름을 변경하는 것은 아니다.
+- 주입시에 `@Qualifier`를 붙여주고 등록한 이름을 적어준다.
+
+```java
+@Component
+@Qualifier("mainDiscountPolicy")
+public class RateDiscountPolicy implements DiscountPolicy {
+    ...
+}
+
+@Autowired
+public OrderServiceImpl(MemberRepository memberRepository,
+                        @Qualifier("mainDiscountPolicy") DiscountPolicy
+discountPolicy) {
+    this.memberRepository = memberRepository;
+    this.discountPolicy = discountPolicy;
+}
+```
+
+`@Qualifier`정리
+1. `@Qualifier`끼리 매칭
+2. 빈 이름 매칭
+3. `NoSuchBeanDefinitionException` 예외 발생
+
+`@Primary` 사용
+- `@Primary` 는 우선순위를 정하는 방법이다. `@Autowired` 시에 여러 빈이 매칭되면 `@Primary` 가 우선권을 가진다.
+- `@Qualifier` 보다는 실무에서 사용빈도가 높음 -> 사용이 간편하기 떄문.
+
+### @Primary, @Qualifier 활용
+코드에서 자주 사용하는 메인 데이터베이스의 커넥션을 획득하는 스프링 빈이 있고, 코드에서 특별한 기능으로 가끔 사용하는 서브 데이터베이스의 커넥션을 획득하는 스프링 빈이 있다고 생각해보자. 메인 데이터베이스의 커넥션을 획득하는 스프링 빈은 `@Primary` 를 적용해서 조회하는 곳에서 `@Qualifier` 지정 없이 편리하게 조회하고, 서브 데이터베이스 커넥션 빈을 획득할 때는 `@Qualifier` 를 지정해서 명시적으로 획득 하는 방식으로 사용하면 코드를 깔끔하게 유지할 수 있다. 물론 이때 메인 데이터베이스의 스프링 빈을 등록할 때 `@Qualifier` 를 지정해주는 것은 상관없다.
+
+**우선순위**
+스프링은 자동보다는 수동이, 넒은 범위의 선택권 보다는 좁은 범위의 선택권이 우선 순위가 높다.
+따라서 여기서도 `@Qualifier` 가 우선권이 높다.
