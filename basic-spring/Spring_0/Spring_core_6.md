@@ -172,9 +172,7 @@ public class RateDiscountPolicy implements DiscountPolicy {
 }
 
 @Autowired
-public OrderServiceImpl(MemberRepository memberRepository,
-                        @Qualifier("mainDiscountPolicy") DiscountPolicy
-discountPolicy) {
+public OrderServiceImpl(MemberRepository memberRepository,  @Qualifier("mainDiscountPolicy") DiscountPolicy discountPolicy) {
     this.memberRepository = memberRepository;
     this.discountPolicy = discountPolicy;
 }
@@ -195,3 +193,155 @@ discountPolicy) {
 **우선순위**
 스프링은 자동보다는 수동이, 넒은 범위의 선택권 보다는 좁은 범위의 선택권이 우선 순위가 높다.
 따라서 여기서도 `@Qualifier` 가 우선권이 높다.
+
+
+## 어노테이션 직접 만들기
+`@Qualifier(mainDiscountPolicy)` 와 같이 문자를 직접 적으면 컴파일 타입시 체크가 불가능함
+=> 이를 해결하기 위하여 어노테이션을 직접 만들 수 있음.
+
+```java
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER,
+ElementType.TYPE, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Qualifier("mainDiscountPolicy")
+public @interface MainDiscountPolicy {
+    ...
+}
+```
+
+
+```java
+@Component
+@MainDiscountPolicy
+public class RateDiscountPolicy implements DiscountPolicy {
+    ...
+}
+```
+
+```java
+//생성자 자동 주입
+@Autowired
+public OrderServiceImpl(MemberRepository memberRepository,
+ @MainDiscountPolicy DiscountPolicy discountPolicy) {
+ this.memberRepository = memberRepository;
+ this.discountPolicy = discountPolicy;
+}
+//수정자 자동 주입
+@Autowired
+public DiscountPolicy setDiscountPolicy(@MainDiscountPolicy DiscountPolicy 
+discountPolicy) {
+ this.discountPolicy = discountPolicy;
+}
+```
+
+- 어노테이션에는 상속 개념이 없음.
+- `@Qulifier` 뿐만 아니라 다른 애노테이션들도 함께 조합해서 사용할 수 있음
+- `@Autowired` 도 재정의가 가능함.
+- 단, 무분별하게 재정의를 남발하는 경우 유지보수에 악영향을 초래한다.
+
+## 조회한 빈이 모두 필요할때 List, Map
+
+- 해당타입의 스프링 빈이 모두 필요한 경우
+    - ex) 클라이언트가 할인의 종류를 선택할 수 있는경우 -> 이러한 전략패턴을 간편하게 구현할 수 있음
+
+```java
+public class AllBeanTest {
+    @Test
+    void findAllBean() {
+        ApplicationContext ac = new AnnotationConfigApplicationContext(AutoAppConfig.class, DiscountService.class);
+        DiscountService discountService = ac.getBean(DiscountService.class);
+        
+        Member member = new Member(1L, "userA", Grade.VIP);
+        int discountPrice = discountService.discount(member, 10000, "fixDiscountPolicy");
+        
+        assertThat(discountService).isInstanceOf(DiscountService.class);
+        assertThat(discountPrice).isEqualTo(1000);
+    }
+    
+    static class DiscountService {
+        private final Map<String, DiscountPolicy> policyMap;
+        private final List<DiscountPolicy> policies;
+        
+        public DiscountService(Map<String, DiscountPolicy> policyMap, List<DiscountPolicy> policies) {
+            this.policyMap = policyMap;
+            this.policies = policies;
+            System.out.println("policyMap = " + policyMap);
+            System.out.println("policies = " + policies);
+        }
+ 
+        public int discount(Member member, int price, String discountCode) {
+            DiscountPolicy discountPolicy = policyMap.get(discountCode);
+            
+            System.out.println("discountCode = " + discountCode);
+            System.out.println("discountPolicy = " + discountPolicy);
+            
+            return discountPolicy.discount(member, price);
+        }
+    }
+}
+```
+
+**로직분석**
+
+- `DiscountService`는 Map으로 만는 DiscountPolicy를 주입받는다. 이 때, `rateDiscountPolicy`, `fixDiscountPolicy` 주입된다.
+- `discount()` 메서드는 discountCode로 `fixDiscountPolicy`가 넘어 오면 Map에 해당 빈을 찾아서 실행 하는 구조이다.
+
+**주입분석**
+- `Map<String, DiscountPolicy>` : map의 key에 스프링 빈의 이름을 넣어주고 그 값으로 DiscountPolicy 타입으로 조회한 스프링 빈을 value로 담이 준다
+- `List<DiscountPolicy>` : `DiscountPolicy` 타입으로 조회한 스프링 빈을 담아준다.
+
+스프링 컨테이너를 생성하면서, 해당 컨테이너에 동시에 `AutoAppConfig`, ``DiscountService`를 스프링 빈으로 자동 등록한다.
+
+## 자동, 수동의 올바른 실무 운용기준
+
+### 편리한 자동기능 - 기본으로 사용
+- 대부분 자동을 선호하는 추세
+- 스프링은 `@Component` 뿐만 아니라, `@Controller`, `@Service`, `@Repository` 처럼 계층에 맞추어 일반적인 어플리케이션 로직을 자동으로 스캔할 수 있도록 지원한다.
+- 스프링 부트 컴포넌트 스캔을 기본으로 사용 및 스프링 붙의 다양한 빈도 조건에 맞으면 자동으로 빈으로 등록한다.
+- 관리할 빈이 많아져 설정 정보가 커지면 관리가 부담이 되기 때문에 자동 등록을 권장
+- 자동 등록 빈을 사용하여도 OCP, DIP 원칙을 지킬 수 있다.
+
+### 수동 빈 등록을 사용하는 경우
+- 어플리케이션은 크게 업무로직, 기술로직으로 나눌 수 있음
+- **업무로직 빈** : 컨트롤러, 서비스, 리포지토리 => 업무 로직 
+- **기술지원 빈** : 기술적인 문제나 공통 관심사(AOP)를 처리할때 주로 사용, DB 연결, 공통로그 처리 처럼 업무 로직을 지원하기 위한 기술, 혹은 공통기술
+
+- 업무로직은 자동 기능을 적극 사용하는 것이 좋다. 보통 문제가 발생해도 어떤 곳에서 문제가 발생했는지 명확하게 파악하기 쉽다.
+- 기술 지원 로직은 업무 로직과 비교해서 그 수가 매우 적고, 보통 애플리케이션 전반에 걸쳐서 광범위하게 영향을 미친다. 그래서 이런 기술 지원 로직들은 가급적 수동 빈 등록을 사용해서 명확하게 드러내는 것이 좋다.
+
+**애플리케이션에 광범위하게 영향을 미치는 기술 지원 객체는 수동 빈으로 등록해서 딱! 설정 정보에 바로
+나타나게 하는 것이 유지보수 하기 좋다.**
+
+### 비즈니스 로직 중 다형성을 활용할 때의 처리
+- 의존관계 자동 주입 - 조회한 빈이 모두 필요할 때, List, Map의 경우
+- 자동 등록을 사용하고 있기 때문에 파악하려면 여러 코드를 찾아봐야 한다.
+- 이런 경우 수동 빈으로 등록하거나 또는 자동으로하면 특정 패키지에 같이 묶어두는게 좋다.
+
+- 예시코드
+```java
+@Configuration
+public class DiscountPolicyConfig {
+ 
+ @Bean
+ public DiscountPolicy rateDiscountPolicy() {
+    return new RateDiscountPolicy();
+ }
+ @Bean
+ public DiscountPolicy fixDiscountPolicy() {
+    return new FixDiscountPolicy();
+ }
+}
+```
+등록을 사용하고 싶으면 파악하기 좋게 DiscountPolicy 의 구현 빈들만 따로 모아서 특정 패키지에
+모아두자.
+
+- 단, **스프링과 스프링 부트가 자동으로 등록하는 수 많은 빈들은 예외**
+- 스프링 부트의 경우 `DataSource`같은 데이터베이스 연결에 사용하는 기술지원 로직까지 자동으로 등록한다.
+- 반면, **스프링 부트가 아니라 내가 직접 기술 지원 객체를 스프링 빈으로 등록한다면 수동으로 등록해서 명확하게 드러내는 것이 좋다**
+
+### 정리
+
+- 편리한 자동 기능을 기본으로 사용하자
+- 직접 등록하는 기술 지원 객체는 수동 등록
+- 다형성을 적극 활용하는 비즈니스 로직은 수동 등록을 고려해본다.
