@@ -25,6 +25,9 @@ public class PrototypeTest {
 
         assertThat(prototypeBean1).isNotSameAs(prototypeBean2);
 
+        prototypeBean1.destory();
+        prototypeBean2.destory();
+
         ac.close();
 
     }
