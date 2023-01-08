@@ -1,7 +1,10 @@
 package hello.core.scope;
 
+import org.assertj.core.api.Assert;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Scope;
 
@@ -22,6 +25,40 @@ public class SingletonWithPrototypeTest1 {
         PrototypeBean prototypeBean2 = ac.getBean(PrototypeBean.class);
         prototypeBean2.addCount();
         assertThat(prototypeBean2.getCount()).isEqualTo(1);
+    }
+
+    @Test
+    void singletonClientUserPrototype() {
+        AnnotationConfigApplicationContext ac =
+                new AnnotationConfigApplicationContext(ClientBean.class, PrototypeBean.class);
+        ClientBean clienBean1 = ac.getBean(ClientBean.class);
+        int count1 = clienBean1.logic();
+        assertThat(count1).isEqualTo(1);
+
+        ClientBean clienBean2 = ac.getBean(ClientBean.class);
+        int count2 = clienBean2.logic();
+        assertThat(count2).isEqualTo(2);
+
+
+    }
+
+    @Scope("singleton")
+    static class ClientBean {
+
+        // private final PrototypeBean prototypeBean; //생성시점에 주입
+        @Autowired
+        ApplicationContext applicationContext;
+
+//        @Autowired
+//        public ClientBean(PrototypeBean prototypeBean) {
+//            this.prototypeBean = prototypeBean;
+//        }
+
+        public int logic() {
+            PrototypeBean prototypeBean = applicationContext.getBean(PrototypeBean.class); // 지저분한 코드
+            prototypeBean.addCount();
+            return prototypeBean.getCount();
+        }
     }
 
     @Scope("prototype")
