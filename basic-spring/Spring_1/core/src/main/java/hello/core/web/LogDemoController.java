@@ -18,17 +18,20 @@ public class LogDemoController {
      * ObjectProvider를 활용하여 request scope 빈의 생성을 지연할 수 있다.
      * ObjectProvider.getObject()를 호출하는 시점에서는 http 요청이 진행 중이므로 빈의 생성이 정상 처리된다.
      */
-    private final ObjectProvider<MyLogger> myLoggerProvider;
+    // private final ObjectProvider<MyLogger> myLoggerProvider;
+    private final MyLogger myLogger;
 
     @RequestMapping("log-demo")
     @ResponseBody
-        public String logDemo(HttpServletRequest request) {
-            String requestURL = request.getRequestURL().toString();
-            MyLogger myLogger = myLoggerProvider.getObject();
-            myLogger.setRequestURL(requestURL);
+    public String logDemo(HttpServletRequest request) {
+        String requestURL = request.getRequestURL().toString();
+        // MyLogger myLogger = myLoggerProvider.getObject();
 
-            myLogger.log("controller test");
-            logDemoService.logic("testId");
+        System.out.println("myLogger = " + myLogger.getClass());
+        myLogger.setRequestURL(requestURL);
+
+        myLogger.log("controller test");
+        logDemoService.logic("testId");
         return "OK";
     }
 }
