@@ -13,9 +13,10 @@
 * **초기화 콜백** : 빈이 생성되고, 빈의 의존관계 주입이 완료된 후 호출
 * **소멸전 콜백** : 빈이 소멸되기 직전에 호출
 
-> 참고 : 객체의 생성과 초기화를 분리하자
+> 참고 : **객체의 생성과 초기화를 분리하자**
 > 초기화는 생성된 값들을 활용해서 외부 커넥션을 연결하는 상대적으로 무거운 동작을 수행한다. 
 > 따라서 객체를 생성하는 부분과 초기화 하는 부분을 명확하게 분리하는 것이 유지 보수의 관점에서 유리하다.
+> &rarr; 단일책임원칙.
 
 > 참고2 : 싱글톤 빈들은 스프링 컨 테이너가 종료될 때 싱글톤 빈들도 함께 종료되기 때문에 스프링 컨테이너가종료되기 직전에 소멸전 콜백이 일어난다.
 > 싱글톤 처럼 컨테이너의 시작과 종료까지
@@ -24,10 +25,10 @@
 
 ### 스프링은 크게 3가지 방법으로 빈 생명주기 콜백을 지원한다.
 1. 인터페이스(InitializingBean, DisposableBean)
-2. 설정정보에 초기화 메서드, 종료 세머드 지정
+2. 설정정보에 초기화 메서드, 종료 메서드 지정
 3. @PostConsturct, @PreDestory 어노테이션 지정
 
-## 인터페이스 InitializingBean, DisposableBean
+## 1. 인터페이스 InitializingBean, DisposableBean
 
 ### 초기화, 소멸 인터페이스 단점
 - 이 인터페이스는 스프링 전용 인터페이스다. 해당 코드가 스프링 전용 인터페이스에 의존한다.
@@ -35,3 +36,52 @@
 - 내가 코드를 고칠 수 없는 외부 라이브러리에 적용할 수 없다.
 
 > 참고: 인터페이스를 사용하는 초기화, 종료 방법은 스프링 초창기에 나온 방법들이고, 지금은 다음의 더 나은 방법들이 있어서 거의 사용하지 않는다.
+
+ ## 2. 설정정보에 초기화 메서드, 종료 메서드 지정
+
+설정 정보에 `@Bean(initMethod = "init", destroyMethod = "close")` 처럼 초기화, 소멸 메서드를 지정할 수 있다.
+
+### 설정정보를 사용하도록 변경
+```java
+@Configuration
+static class LifeCycleConfig {
+    @Bean(initMethod = "init", destroyMethod = "close")
+    public NetworkClient networkClient() {
+        NetworkClient networkClient = new NetworkClient();
+        networkClient.setUrl("http://hello-spring.dev");
+        return networkClient;
+    }
+}
+```
+### 설정 정보 사용특징
+- 메서드 이름을 자유롭게 줄 수 있다.
+- 스프링 빈이 스프링 코드에 의존하지 않는다.
+- 코드가 아니라 설정 정보를 사용하기 때문에 코드를 고칠 수 없는 외부 라이브러리에도 초기화, 종료 메서드를 적용할 수 있다.
+
+### 종료 메서드 추론
+- `@Bean`의 `destroyMethod` 속성에는 아주 특별한 기능이 있다.
+- 라이브러리는 대부분 `close` , `shutdown` 이라는 이름의 종료 메서드를 사용한다. 
+- `@Bean`의 `destroyMethod` 는 기본값이 (inferred) (추론)으로 등록되어 있다.
+- 이 추론 기능은 `close` , `shutdown` 라는 이름의 메서드를 자동으로 호출해준다. 이름 그대로 종료
+메서드를 추론해서 호출해준다.
+- 따라서 직접 스프링 빈으로 등록하면 종료 메서드는 따로 적어주지 않아도 잘 동작한다.
+- 추론 기능을 사용하기 싫으면 `destroyMethod=""` 처럼 빈 공백을 지정하면 된다.
+
+## 3. @PostConstruct, @PreDestroy 어노테이션 지정
+
+`@PostConstruct` , `@PreDestroy` 이 두 어노테이션을 사용하면 가장 편리하게 초기화와 종료를 실행할 수
+있다.
+
+
+### @PostConstruct, @PreDestroy 애노테이션 특징
+- 최신 스프링에서 가장 권장하는 방법
+- 어노테이션 하나만 붙이면 되므로 매우 편리하다.
+- 패키지를 잘 보면 `javax.annotation.PostConstruct` 이다. 스프링에 종속적인 기술이 아니라 JSR-250
+라는 자바 표준이다. 따라서 **스프링이 아닌 다른 컨테이너에서도 동작한다.**
+- 컴포넌트 스캔과 잘 어울린다.
+- 유일한 단점은 **외부 라이브러리에는 적용하지 못한다는 것이다.** 외부 라이브러리를 초기화, 종료 해야 하면
+@Bean의 기능을 사용하자
+
+### 정리
+- **`@PostConstruct`, `@PreDestroy `애노테이션을 사용하자**
+- 코드를 고칠 수 없는 외부 라이브러리를 초기화, 종료해야 하면 `@Bean` 의 `initMethod , destroyMethod` 를 사용하자.
