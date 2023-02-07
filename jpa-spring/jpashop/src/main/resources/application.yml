@@ -7,7 +7,7 @@ spring:
 
   jpa :
     hibernate :
-      ddl-auto : create # application ?? ??? ?? ???? ???
+      ddl-auto : create # application 실행시 drop 후 테이블 다시 생성
     properties :
       hibernate :
 #        show_sql : true
@@ -15,5 +15,5 @@ spring:
 
 logging :
   level :
-    org.hibernate.SQL: debug # jpa hibernate ?? sql? logger? ???
-    org.hibernate.type: trace # ???? ??? ???
+    org.hibernate.SQL: debug
+    # org.hibernate.type: trace
