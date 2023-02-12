@@ -7,6 +7,8 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static javax.persistence.FetchType.*;
+
 @Entity
 @Getter @Setter
 public class Category {
@@ -30,7 +32,7 @@ public class Category {
      * ManyToMany, OneToMany 관계는 기본이 즉시로딩(EAGER)이기 떄문에
      * FetchType을 지연로딩(LAZY)으로 설정한다.
      */
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "parent_id")
     private Category parent;
 
