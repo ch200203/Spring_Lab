@@ -1,0 +1,22 @@
+spring:
+#  datasource :
+#    url : jdbc:h2:mem:test # in memory h2 db
+#    username : sa
+#    password :
+#    driver-class-name : org.h2.Driver
+#
+#  jpa :
+#    hibernate :
+#      ddl-auto : create-drop # application 실행시 drop 후 테이블 다시 생성
+#    properties :
+#      hibernate :
+##        show_sql : true
+#        format_sql : true
+
+# 별도의 설정이 없는 경우 Spring Boot는 Memory 모드로 실행시킴
+
+
+logging :
+  level :
+    org.hibernate.SQL: debug
+    # org.hibernate.type: trace

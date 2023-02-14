@@ -31,7 +31,6 @@ public class MemberRepository {
     public List<Member> findAll() {
         return em.createQuery("select m from Member m", Member.class)
                 .getResultList();
-
         // JPQL에서의 from의 대상은 table이 아니라 Entity가 대상임
     }
 
