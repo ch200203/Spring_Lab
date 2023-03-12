@@ -28,4 +28,14 @@ public class ItemService {
         return itemRepository.findOne(itemId);
     }
 
+    /**
+     * 변경감지 활용
+     */
+    @Transactional
+    public void updateItem(Long itemId,String name, int price, int stockQuantity) {
+        Item findItem = itemRepository.findOne(itemId);
+        findItem.setName(name);
+        findItem.setPrice(price);
+        findItem.setStockQuantity(stockQuantity);
+    }
 }
