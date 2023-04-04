@@ -62,7 +62,110 @@ em.remove(member);
 ## 영속성 컨텍스트의 이점
 
 - 1차 캐시
+    ```java
+    // 엔티티를 생성한 상태(비영속)
+    Member member = new Member();
+    member.setId("member1");
+    member.setUsername("회원1");
+
+    // 엔티티를 영속
+    em.persist(member);
+
+    ---- 
+    Member member = new Member();
+    member.setId("member1");
+    member.setUsername("회원1");
+
+    // 1차 캐시에 저장됨
+    em.persist(member);
+    
+
+    // 1차 캐시에서 조회
+    Member findMember = em.find(Member.class, "member1");
+
+    // 데이터베이스에서 조회
+    Member findMember2 = em.find(Memeber.class, "member2");
+    ```
 - 동일성(identity) 보장
+    ```java
+    // 영속 엔티티의 동일성 보장
+    Member a = em.find(Member.class, "member1");
+    Member b = em.find(Member.class, "member1");
+
+    System.out.println(a == b) // 동일성 비교 true
+    ```
+    - 1차 캐시로 `REPEATABLE READ` 등급의 트랜잭션 격리 수준을 데이터베이스가 아닌 **어플리케이션 차원**에서 제공
+    
 - 트랜잭션을 지원하는 쓰기지연(transactional write-behind)
+    ```java
+    EntityManager em = emf.createEntityManager();
+    EntityTransaction transaction = em.getTransaction();
+    //엔티티 매니저는 데이터 변경시 트랜잭션을 시작해야 한다.
+    transaction.begin(); // [트랜잭션] 시작
+
+    em.persist(memberA);
+    em.persist(memberB);
+    //여기까지 INSERT SQL을 데이터베이스에 보내지 않는다.
+    //커밋하는 순간 데이터베이스에 INSERT SQL을 보낸다.
+    transaction.commit(); // [트랜잭션] 커밋
+    ```
 - 변경 감지(Dirty Checking) 
+    ```java
+    EntityManager em = emf.createEntityManager();
+    EntityTransaction transaction = em.getTransaction();
+    transaction.begin(); // [트랜잭션] 시작
+
+    // 영속 엔티티 조회
+    Member memberA = em.find(Member.class, "memberA");
+
+    // 영속 엔티티 데이터 수정
+    memberA.setUsername("hi");
+    memberA.setAge(10);
+
+    //em.update(member) 이런 코드가 있어야 하지 않을까?
+    transaction.commit(); // [트랜잭션] 커밋
+    ```
+- 엔티티 삭제
+    ```java
+    //삭제 대상 엔티티 조회
+    Member memberA = em.find(Member.class, “memberA");
+    em.remove(memberA); //엔티티 삭제
+    ```
 - 지연 로딩(Lazy Loading)
+
+## 플러시
+- 영속성 컨텍스트의 변경내용을 데이터베이스에 반영
+
+### 플러시 발생
+    - 변경감지
+    - 수정된 엔티티 쓰기 지연 SQL 저장소에 등록
+    - 쓰기 지연 SQL 저장소의 쿼리를 데이터베이스에 전송(등록, 수정, 삭제쿼리)
+
+### 영속성 컨텍스트를 플러시하는 방법
+    - em.flush() - 직접호출 
+    - 트랜잭션 커밋 - 플러시 자동 호출
+    - JPQL 쿼리 실행 - 플러시 자동 호출
+
+### JPQL 쿼리 실행시 플러시가 자동으로 호출되는 이유
+```java
+em.persist(memberA);
+em.persist(memberB);
+em.persist(memberC);
+
+//중간에 JPQL 실행
+query = em.createQuery("select m from Member m", Member.class);
+List<Member> members= query.getResultList();
+```
+
+### 플러시 모드 옵션
+
+`em.setFlushMode(FlushModeType.COMMIT)`
+- **FlushModeType.AUTO**
+    - 커밋이나 쿼리를 실행할 떄, 플러시 (기본값)
+- **FlushModeType.COMMIT*
+    - 커밋할 때만 플러시
+
+### 플러시의 특징
+- 플러시는 영속성 컨텍스트를 비우지 않음
+- 영속성 컨텍스트의 변경 내용을 데이터베이스에 동기화
+- **트랜잭션**이라는 작업의 단위가 중요 &rarr; 커밋 직전에만 동기화 하면 됨
