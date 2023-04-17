@@ -146,6 +146,38 @@ em.remove(member);
     - 트랜잭션 커밋 - 플러시 자동 호출
     - JPQL 쿼리 실행 - 플러시 자동 호출
 
+```java
+public class JpaMain {
+
+    public static void main(String[] args) {
+        
+        ...
+
+        Member member = new Member(200L, "A");
+        entityManager.persist(member);
+
+        entityManager.flush();
+        System.out.println("-----");
+
+        tx.commit();
+    }
+}
+```
+```sql
+Hibernate: 
+    /* insert hellojpa.Member */ 
+    insert into
+            Member
+            (name, id) 
+        values
+            (?, ?)
+-----
+```
+- 쿼리를 미리 반영하고 싶으면 커밋 전에 강제로 flush()를 호출할 수 있다.
+- flush()를 해도 1차 캐시는 유지된다.
+    - 1차 캐시와는 상관없이 쓰기 지연 SQL 저장소에 쌓인 쿼리나 변경 감지한 내용이 DB에 반영되는 것이다.
+
+
 ### JPQL 쿼리 실행시 플러시가 자동으로 호출되는 이유
 ```java
 em.persist(memberA);
@@ -162,10 +194,25 @@ List<Member> members= query.getResultList();
 `em.setFlushMode(FlushModeType.COMMIT)`
 - **FlushModeType.AUTO**
     - 커밋이나 쿼리를 실행할 떄, 플러시 (기본값)
-- **FlushModeType.COMMIT*
-    - 커밋할 때만 플러시
+- **FlushModeType.COMMIT**
+    - 커밋할 때만 플러시가 실행
+    - 쿼리를 할 때는 실행되지 않음
+        - 중간에 실행하는 JPQL 쿼리가 앞과는 전혀 다른 데이터를 써서 굳이 당장 플러시할 필요가 없을 때 사용
 
 ### 플러시의 특징
 - 플러시는 영속성 컨텍스트를 비우지 않음
-- 영속성 컨텍스트의 변경 내용을 데이터베이스에 동기화
-- **트랜잭션**이라는 작업의 단위가 중요 &rarr; 커밋 직전에만 동기화 하면 됨
+- 영속성 컨텍스트의 변경 내용을 데이터베이스에 동기화하는 작업
+- 트랜잭션이라는 개념이 있기 때문에 동작 가능한 매커니즘
+- **트랜잭션**이라는 작업의 단위가 중요 &rarr; 커밋 직전에만 동기화 하면 됨(즉, 변경내역을 DB에 날려주면 된다.)
+
+
+## 준영속 상태
+
+- 영속
+    - 영속성 컨텍스트에서 관리되는 상태
+    - insert뿐만 아니라 조회 시점에서 1차 캐시에 없어서 DB에서 가져와 1차 캐시에 올려두는 상태도 포함
+- 준영속
+    - 영속 상태의 Entity가 영속성 컨텍스트에서 분리되는 상태
+    - `detach()`를 실행하면 트랜잭션을 커밋해도 영향을 받지 않음
+    - 영속성 컨텍스트가 더 이상 관리하지 않는 상태
+    - 즉, **영속성 컨텍스트가 제공하는 기능을 사용할 수 없는 상태**
