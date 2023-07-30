@@ -114,11 +114,27 @@ public class OrderRepository {
         return query.getResultList();
     }
 
+    /**
+     * 재사용성이 findOrderDtos 에 비해 높음
+     */
     public List<Order> finAllWithMemberDelivery() {
         return em.createQuery(
             "select o from Order o "
                 + "join fetch o.member m "
                 + "join fetch o.delivery d ", Order.class
         ).getResultList();
+    }
+
+    /**
+     * new 명령어를 사용하여 JPQL의 결과를 DTO로 즉시 변환
+     * SELECT 절에서 원하는 데이터를 직접 선택하기 떄문에 DB + 어플리케이션 네트웍 용량 최적화(생각보다 미비)
+     * 리포지토리 재사용성이 떨어짐, API 스펙에 맞춘 코드가 리포지토리에 들어가는 단점이 있음.
+     */
+    public List<OrderSimpleQueryDto> findOrderDtos() {
+        return em.createQuery("select new jpabook.jpashop.repository.OrderSimpleQueryDto(o.id, m.name, o.orderDate, o.status, d.address) "
+                + "from Order o"
+                + " join o.member m"
+                + " join o.delivery d", OrderSimpleQueryDto.class)
+            .getResultList();
     }
 }

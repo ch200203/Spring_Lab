@@ -10,6 +10,7 @@ import jpabook.jpashop.domain.Order;
 import jpabook.jpashop.domain.OrderStatus;
 import jpabook.jpashop.repository.OrderRepository;
 import jpabook.jpashop.repository.OrderSearch;
+import jpabook.jpashop.repository.OrderSimpleQueryDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -87,6 +88,13 @@ public class OrderSimpleApiController {
         return result;
     }
 
+    /**
+     *
+     */
+    @GetMapping("/api/v4/simple-orders")
+    public List<OrderSimpleQueryDto> orderV4() {
+        return orderRepository.findOrderDtos();
+    }
 
     @Data
     @AllArgsConstructor
@@ -106,6 +114,4 @@ public class OrderSimpleApiController {
             address = order.getDelivery().getAddress(); // LAZY 초기화
         }
     }
-
-
 }
