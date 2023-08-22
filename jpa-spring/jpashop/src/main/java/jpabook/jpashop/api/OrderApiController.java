@@ -22,9 +22,10 @@ public class OrderApiController {
 
     /**
      * V1. 엔티티 직접 노출
-     * - 엔티티가 변하면 API 스펙이 벼한다.
+     * - 엔티티가 변하면 API 스펙이 변한다.
      * - 트랜잭션 안에서 지연로딩 필요
-     * - 양방향 연관관계 -> 순환참조 문제 발생가능 -> @JsonIgnore
+     * - 양방향 연관관계 -> 순환참조 문제 발생가능 ->
+     * @JsonIgnore
      */
     @GetMapping("/api/v1/orders")
     public List<Order> ordersV1() {
@@ -42,7 +43,6 @@ public class OrderApiController {
 
     @GetMapping("/api/v2/orders")
     public List<OrderDto> ordersV2() {
-
         List<Order> orders = orderRepository.findAllByString(new OrderSearch());
         List<OrderDto> result = orders.stream()
             .map(o -> new OrderDto(o))
@@ -50,6 +50,17 @@ public class OrderApiController {
 
         return result;
     }
+
+    @GetMapping("/api/v3/orders")
+    public List<OrderDto> ordersV3() {
+        List<Order> orders = orderRepository.findAllByWithItem();
+        List<OrderDto> result = orders.stream()
+            .map(o -> new OrderDto(o))
+            .collect(Collectors.toList());
+
+        return result;
+    }
+
 
     @Data
     static class OrderDto {

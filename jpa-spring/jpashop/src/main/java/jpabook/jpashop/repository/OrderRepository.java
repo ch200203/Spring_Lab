@@ -138,4 +138,26 @@ public class OrderRepository {
                 + " join o.delivery d", OrderSimpleQueryDto.class)
             .getResultList();
     }
+
+    /**
+     * JPA distinct 키워드의 기능
+     * 1. SQL 에 distinct
+     * 2. Entity 의 객체가 중복인 경우 걸러서 컬렉션에 담아줌
+     *
+     * 참고: 컬렉션 페치 조인을 사용하면 페이징이 불가능하다.
+     * 하이버네이트는 경고 로그를 남기면서 모든 데이 터를 DB에서 읽어오고, 메모리에서 페이징 해버린다(매우 위험하다).
+     *      -> 메모리 문제가 발생할 가능성이 매우크다.
+     * 컬렉션 페치 조인은 1개만 사용할 수 있다. (NToMany)
+     * 컬렉션 둘 이상에 페치 조인을 사용하면 안된다.
+     * 데이터가 부정합하게 조회될 수 있다.
+     */
+    public List<Order> findAllByWithItem() {
+        return em.createQuery(
+                "select distinct o from Order o"
+                    + " join fetch o.member m"
+                    + " join fetch o.delivery d"
+                    + " join fetch o.orderItems oi"
+                    + " join fetch oi.item i", Order.class
+            ). getResultList();
+    }
 }
