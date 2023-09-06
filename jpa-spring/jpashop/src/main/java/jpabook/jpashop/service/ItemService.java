@@ -20,7 +20,7 @@ public class ItemService {
         itemRepository.save(item);
     }
 
-    public List<Item> findItems(Item item) {
+    public List<Item> findItems() {
         return itemRepository.findAll();
     }
 
@@ -28,4 +28,15 @@ public class ItemService {
         return itemRepository.findOne(itemId);
     }
 
+    /**
+     * 변경감지 활용
+     */
+    @Transactional
+    public void updateItem(Long itemId,String name, int price, int stockQuantity) {
+        Item findItem = itemRepository.findOne(itemId);
+        // findItem.change() -> 이걸 만들어서 활용하는 것이 더 좋은 코드임
+        findItem.setName(name);
+        findItem.setPrice(price);
+        findItem.setStockQuantity(stockQuantity);
+    }
 }
