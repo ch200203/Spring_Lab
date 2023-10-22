@@ -7,11 +7,12 @@ spring:
 
   jpa :
     hibernate :
-      ddl-auto : create # application 실행시 drop 후 테이블 다시 생성
+      ddl-auto : create # create application 실행시 drop 후 테이블 다시 생성
     properties :
       hibernate :
 #        show_sql : true
         format_sql : true
+        default_batch_fetch_size: 100 # in query의 갯수
 
   thymeleaf:
     prefix: classpath:/templates/
@@ -21,4 +22,4 @@ spring:
 logging :
   level :
     org.hibernate.SQL: debug
-    # org.hibernate.type: trace
+    org.hibernate.type: trace
