@@ -35,6 +35,15 @@ public class Pipe {
 
         System.out.println(topology.describe());
 
+        /**
+         * Topologies:
+         *    Sub-topology: 0
+         *     Source: KSTREAM-SOURCE-0000000000 (topics: [streams-plaintext-input])
+         *       --> KSTREAM-SINK-0000000001
+         *     Sink: KSTREAM-SINK-0000000001 (topic: streams-pipe-output)
+         *       <-- KSTREAM-SOURCE-0000000000
+         */
+
         final KafkaStreams streams = new KafkaStreams(topology, properties);
         final CountDownLatch latch = new CountDownLatch(1);
 
