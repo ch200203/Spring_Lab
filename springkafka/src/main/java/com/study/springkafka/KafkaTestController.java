@@ -16,6 +16,4 @@ public class KafkaTestController {
         String message = "test message";
         kafkaProducer.sendMessage(message);
     }
-
-
 }

@@ -1,1 +1,12 @@
-
+spring :
+  kafka :
+    consumer:
+      bootstrap-servers: localhost:9092 # kafka 클러스터에 대한 초기 연결에 사용할 IP 목록, 쉼표로 구분
+      group-id: test #  Consumer는 Consumer Group이 존재하고, 유일하게 식별할 수 있는 Consumer Group ID
+      auto-offset-reset: earliest  # Kafka 서버에 초기 offset이 없거나, 서버에 현재 offset이 더 이상 없는 경우 수행할 작업을 작성, earliest : 가장 오래된 메시지로 offset reset
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer # Kafka에서 데이터를 받아올 때 key/value를 역직렬화 한다.
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
