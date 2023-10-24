@@ -16,7 +16,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
 //    @Autowired // 생성자가 1개인 경우에는 생략가능
-//    public MemberService(MemberRepository memberRepository) {
+//    public MemberService(MemberRepository memberRepository)
 //        this.memberRepository = memberRepository;
 //    }
 
