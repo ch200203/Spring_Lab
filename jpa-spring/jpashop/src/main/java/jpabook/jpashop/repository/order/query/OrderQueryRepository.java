@@ -1,12 +1,9 @@
 package jpabook.jpashop.repository.order.query;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
-import jpabook.jpashop.domain.Address;
-import jpabook.jpashop.domain.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -54,13 +51,12 @@ public class OrderQueryRepository {
     }
 
     /**
-     * v4에서는 루프를 돌릴 때 마다 query가 날라갔는데
-     * v5(findAllByDto_optimization) 최적화를 진행하게 되면 query가 딱 두번 날라감.
-     * findOrders(); 쿼리 1번, List<OrderItemQueryDto> orderItems 쿼리 한번.
-     * orderItems 쿼리를 가져오고 메모리에서 매칭을 해서 값을 세팅을 해줌.
-     *
-     * ToOne 관계들을 먼저 조회하고(findOrders()), 여기서 얻은 식별자 orderId로 ToMany 관계인 OrderItem 을 한꺼번 에 조회
-     * MAP을 사용해서 매칭 성능 향상(O(1))
+     * v4에서는 루프를 돌릴 때 마다 query가 날라갔는데 v5(findAllByDto_optimization) 최적화를 진행하게 되면 query가 딱 두번 날라감.
+     * findOrders(); 쿼리 1번, List<OrderItemQueryDto> orderItems 쿼리 한번. orderItems 쿼리를 가져오고 메모리에서 매칭을
+     * 해서 값을 세팅을 해줌.
+     * <p>
+     * ToOne 관계들을 먼저 조회하고(findOrders()), 여기서 얻은 식별자 orderId로 ToMany 관계인 OrderItem 을 한꺼번 에 조회 MAP을
+     * 사용해서 매칭 성능 향상(O(1))
      */
     public List<OrderQueryDto> findAllByDto_optimization() {
         List<OrderQueryDto> result = findOrders();
@@ -78,8 +74,8 @@ public class OrderQueryRepository {
                     + "from OrderItem oi "
                     + "join oi.item i "
                     + "where oi.order.id in :orderIds", OrderItemQueryDto.class)
-                .setParameter("orderIds", orderIds)
-                .getResultList();
+            .setParameter("orderIds", orderIds)
+            .getResultList();
 
         Map<Long, List<OrderItemQueryDto>> orderItemMap = orderItems.stream()
             .collect(Collectors.groupingBy(orderItemQueryDto -> orderItemQueryDto.getOrderId()));
@@ -89,8 +85,20 @@ public class OrderQueryRepository {
 
     private static List<Long> toOrderIds(List<OrderQueryDto> result) {
         List<Long> orderIds = result.stream()
-                .map(o -> o.getOrderId())
-                .collect(Collectors.toList());
+            .map(o -> o.getOrderId())
+            .collect(Collectors.toList());
         return orderIds;
+    }
+
+    public List<OrderFlatDto> findAllByDto_flat() {
+        return em.createQuery(
+                "select new "
+                    + "jpabook.jpashop.repository.order.query.OrderFlatDto(o.id, m.name, o.orderDate, o.status, d.address, i.name, oi.orderPrice, oi.count) "
+                    + "from Order o "
+                    + "join o.member m "
+                    + "join o.delivery d "
+                    + "join o.orderItems oi "
+                    + "join oi.item i ", OrderFlatDto.class)
+            .getResultList();
     }
 }
