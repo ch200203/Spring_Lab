@@ -17,13 +17,11 @@ public class OrderQueryDto {
     private List<OrderItemQueryDto> orderItems;
 
     public OrderQueryDto(Long orderId, String name, LocalDateTime orderDate,
-        OrderStatus orderStatus,
-        Address address, List<OrderItemQueryDto> orderItems) {
+        OrderStatus orderStatus, Address address) {
         this.orderId = orderId;
         this.name = name;
         this.orderDate = orderDate;
         this.orderStatus = orderStatus;
         this.address = address;
-        this.orderItems = orderItems;
     }
 }
